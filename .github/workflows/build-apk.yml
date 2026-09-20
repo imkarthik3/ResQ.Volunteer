@@ -33,11 +33,9 @@ jobs:
             exit 1
           fi
 
-          echo "Found: $ZIP_FILE"
-
           unzip -o "$ZIP_FILE" -d extracted
 
-      - name: Set Android project directory
+      - name: Check Android project
         run: |
           if [ ! -f "extracted/settings.gradle.kts" ]; then
             echo "ERROR: settings.gradle.kts not found."
@@ -47,10 +45,11 @@ jobs:
 
           echo "PROJECT_DIR=extracted" >> "$GITHUB_ENV"
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Accept Android SDK licenses
+        run: |
+          yes | sdkmanager --licenses || true
 
-      - name: Install Android SDK
+      - name: Install Android SDK packages
         run: |
           sdkmanager "platform-tools"
           sdkmanager "platforms;android-36"
