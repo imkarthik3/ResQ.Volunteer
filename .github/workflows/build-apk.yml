@@ -29,23 +29,44 @@ jobs:
           ZIP_FILE=$(find . -maxdepth 1 -type f -iname "*.zip" | head -n 1)
 
           if [ -z "$ZIP_FILE" ]; then
-            echo "ERROR: No ZIP file found."
+            echo "ERROR: No ZIP file found in repository."
             exit 1
           fi
 
           echo "Found ZIP: $ZIP_FILE"
+
+          rm -rf extracted
+          mkdir extracted
+
           unzip -o "$ZIP_FILE" -d extracted
 
       - name: Check Android project
         run: |
           if [ ! -f "extracted/settings.gradle.kts" ]; then
             echo "ERROR: settings.gradle.kts not found."
+            echo "ZIP contents:"
             find extracted -maxdepth 3 -type f
             exit 1
           fi
 
-          echo "Android project found."
-          echo "PROJECT_DIR=extracted" >> "$GITHUB_ENV"
+          if [ ! -d "extracted/app" ]; then
+            echo "ERROR: app folder not found."
+            exit 1
+          fi
+
+          echo "Android project found successfully."
+
+      - name: Add Firebase configuration
+        run: |
+          if [ ! -f "google-services.json" ]; then
+            echo "ERROR: google-services.json is missing."
+            echo "Please upload google-services.json to the root of the GitHub repository."
+            exit 1
+          fi
+
+          cp google-services.json extracted/app/google-services.json
+
+          echo "google-services.json copied successfully."
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
@@ -56,7 +77,7 @@ jobs:
 
       - name: Accept Android SDK licenses
         run: |
-          yes | sdkmanager --licenses
+          yes | sdkmanager --licenses || true
 
       - name: Install Android SDK packages
         run: |
@@ -74,9 +95,4 @@ jobs:
         run: |
           gradle :app:assembleDebug --stacktrace
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: rescuer-console-debug-apk
-          path: extracted/app/build/outputs/apk/debug/*.apk
-          if-no-files-found: error
+      - name: Find
