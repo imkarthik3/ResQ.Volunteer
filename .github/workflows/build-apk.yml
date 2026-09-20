@@ -29,7 +29,7 @@ jobs:
           ZIP_FILE=$(find . -maxdepth 1 -type f -iname "*.zip" | head -n 1)
 
           if [ -z "$ZIP_FILE" ]; then
-            echo "ERROR: No ZIP file found in repository."
+            echo "ERROR: No ZIP file found"
             exit 1
           fi
 
@@ -43,37 +43,31 @@ jobs:
       - name: Check Android project
         run: |
           if [ ! -f "extracted/settings.gradle.kts" ]; then
-            echo "ERROR: settings.gradle.kts not found."
-            echo "ZIP contents:"
+            echo "ERROR: settings.gradle.kts not found"
             find extracted -maxdepth 3 -type f
             exit 1
           fi
 
           if [ ! -d "extracted/app" ]; then
-            echo "ERROR: app folder not found."
+            echo "ERROR: app folder not found"
             exit 1
           fi
 
-          echo "Android project found successfully."
+          echo "Android project found"
 
       - name: Add Firebase configuration
         run: |
           if [ ! -f "google-services.json" ]; then
-            echo "ERROR: google-services.json is missing."
-            echo "Please upload google-services.json to the root of the GitHub repository."
+            echo "ERROR: google-services.json is missing"
             exit 1
           fi
 
           cp google-services.json extracted/app/google-services.json
 
-          echo "google-services.json copied successfully."
+          echo "Firebase configuration copied"
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
-        with:
-          accept-android-sdk-licenses: 'false'
-          log-accepted-android-sdk-licenses: 'false'
-          packages: ''
 
       - name: Accept Android SDK licenses
         run: |
@@ -95,4 +89,13 @@ jobs:
         run: |
           gradle :app:assembleDebug --stacktrace
 
-      - name: Find
+      - name: Find APK
+        run: |
+          find extracted/app/build/outputs -type f -name "*.apk" -print
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: rescuer-console-debug-apk
+          path: extracted/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
