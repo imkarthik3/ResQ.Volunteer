@@ -33,6 +33,7 @@ jobs:
             exit 1
           fi
 
+          echo "Found ZIP: $ZIP_FILE"
           unzip -o "$ZIP_FILE" -d extracted
 
       - name: Check Android project
@@ -43,7 +44,11 @@ jobs:
             exit 1
           fi
 
+          echo "Android project found."
           echo "PROJECT_DIR=extracted" >> "$GITHUB_ENV"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
 
       - name: Accept Android SDK licenses
         run: |
