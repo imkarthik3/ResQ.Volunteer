@@ -1,4 +1,4 @@
-name: Build Rescuer Console APK
+name: Build ResQ Volunteer APK
 
 on:
   workflow_dispatch:
@@ -67,11 +67,9 @@ jobs:
           echo "Firebase configuration copied"
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Accept Android SDK licenses
-        run: |
-          yes | sdkmanager --licenses || true
+        uses: android-actions/setup-android@v4
+        with:
+          accept-android-sdk-licenses: true
 
       - name: Install Android SDK packages
         run: |
